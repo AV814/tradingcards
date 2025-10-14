@@ -44,3 +44,29 @@ button {
 button:hover {
   background: #005fd1;
 }
+
+h2 {
+  margin-top: 30px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: #2c2c2c;
+  margin: 8px auto;
+  padding: 10px;
+  width: 250px;
+  border-radius: 6px;
+}
+
+#logout {
+  background: #ff4b4b;
+  margin-top: 20px;
+}
+
+#logout:hover {
+  background: #d93939;
+}
