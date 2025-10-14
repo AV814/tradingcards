@@ -16,7 +16,7 @@ onAuthStateChanged(auth, async (user) => {
 
     if (userData) {
       welcomeText.textContent = `Welcome, ${userData.username}!`;
-      pointsText.textContent = `Points: ${userData.points}`;
+      pointsText.textContent = `Cash: $${userData.points}`;
 
       // Show cards (empty if none)
       cardList.innerHTML = "";
