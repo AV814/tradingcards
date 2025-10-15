@@ -143,7 +143,7 @@ button:hover {
 
 .card-image {
   width: 150px;  /* or whatever fits your layout */
-  height: auto;
+  height: 150px;
   display: block;
   margin: 0 auto 10px auto;
   border-radius: 8px;
