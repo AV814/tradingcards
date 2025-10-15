@@ -170,4 +170,33 @@ button:hover {
   margin: 0; 
 }
 
+#profile-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
 
+.profile-card {
+  background: #222;
+  color: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  width: 200px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.profile-card a {
+  display: inline-block;
+  margin-top: 10px;
+  color: #00cec9;
+  text-decoration: none;
+}
+
+.card-item {
+  background: #333;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;
+}
