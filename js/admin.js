@@ -4,7 +4,6 @@ import {
   onValue,
   update,
   get,
-  set,
   remove,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
@@ -26,7 +25,7 @@ onValue(cardsRef, (snapshot) => {
     const div = document.createElement("div");
     div.classList.add("card-item");
 
-    // Determine visual indicator (🔺 / 🔻)
+    // Visual indicator 🔺 / 🔻
     const indicator =
       data.lastChange === "up"
         ? "🔺"
@@ -34,7 +33,6 @@ onValue(cardsRef, (snapshot) => {
         ? "🔻"
         : "";
 
-    // Optional colored class for price text
     const indicatorClass =
       data.lastChange === "up"
         ? "up"
@@ -42,7 +40,6 @@ onValue(cardsRef, (snapshot) => {
         ? "down"
         : "";
 
-    // Display the card info
     div.innerHTML = `
       <h3>${data.name}</h3>
       <p class="${indicatorClass}">
@@ -56,8 +53,23 @@ onValue(cardsRef, (snapshot) => {
   }
 });
 
+// Utility function to get a new price within a scaled range
+function getNewPrice(currentPrice, originalPrice) {
+  // Determine min/max based on originalPrice
+  const minPrice = Math.max(Math.floor(originalPrice * 0.4), 1);
+  const maxPrice = Math.ceil(originalPrice * 2.5);
 
-// Demand-based price adjustments
+  // Random fluctuation ±10%
+  const changePercent = (Math.random() * 0.2) - 0.1; // -10% to +10%
+  let newPrice = Math.round(currentPrice * (1 + changePercent));
+
+  // Clamp to min/max
+  newPrice = Math.max(minPrice, Math.min(maxPrice, newPrice));
+
+  return newPrice;
+}
+
+// Demand-based price adjustments + controlled fluctuation
 async function updatePrices() {
   const snapshot = await get(cardsRef);
   const cards = snapshot.val();
@@ -66,42 +78,35 @@ async function updatePrices() {
   const transactions = txSnapshot.val() || {};
 
   for (const [id, card] of Object.entries(cards)) {
-    let price = parseInt(card.price);
-    let stock = parseInt(card.stock);
+    const currentPrice = parseInt(card.price);
+    const originalPrice = parseInt(card.original_price);
+    let newPrice = getNewPrice(currentPrice, originalPrice);
 
-    // Random base change ±10–20%
-    const direction = Math.random() < 0.5 ? -1 : 1;
-    const percentChange = Math.random() * 0.1 + 0.1;
-    let newPrice = Math.round(price + price * percentChange * direction);
-
-    // Demand logic:
-    // Each transaction entry looks like { action: "buy"/"sell", card: "Barrel" }
+    // Demand logic (buy/sell transactions)
     const cardTransactions = Object.values(transactions).filter(
       (tx) => tx.card === card.name
     );
-
     const buys = cardTransactions.filter((t) => t.action === "buy").length;
     const sells = cardTransactions.filter((t) => t.action === "sell").length;
 
     if (buys > sells) {
-      // More buys than sells → push price up slightly
-      newPrice += Math.round(price * 0.05);
+      newPrice += Math.round(originalPrice * 0.05); // push up 5% of original
     } else if (sells > buys) {
-      // More sells than buys → price dips slightly
-      newPrice -= Math.round(price * 0.05);
+      newPrice -= Math.round(originalPrice * 0.05); // push down 5% of original
     }
 
-    // Keep safe range
-    if (newPrice < 10) newPrice = 10;
-    if (newPrice > 500) newPrice = 500;
+    // Clamp again to ensure it stays in range
+    const minPrice = Math.max(Math.floor(originalPrice * 0.4), 1);
+    const maxPrice = Math.ceil(originalPrice * 2.5);
+    newPrice = Math.max(minPrice, Math.min(maxPrice, newPrice));
 
     await update(ref(database, "cards/" + id), {
       price: String(newPrice),
-      lastChange: newPrice > price ? "up" : newPrice < price ? "down" : "same",
+      lastChange: newPrice > currentPrice ? "up" : newPrice < currentPrice ? "down" : "same",
     });
   }
 
-  // Clear transactions after applying them (optional)
+  // Clear transactions after applying them
   await remove(ref(database, "transactions"));
 
   console.log("✅ Prices updated and demand applied!");
