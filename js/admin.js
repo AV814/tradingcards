@@ -12,7 +12,7 @@ const cardList = document.getElementById("card-list");
 const countdownEl = document.getElementById("countdown");
 const forceBtn = document.getElementById("force-update");
 
-let intervalSeconds = 100; // update every 3 minutes
+let intervalSeconds = 100;
 let countdown = intervalSeconds;
 
 // Load and display all cards
@@ -24,10 +24,19 @@ onValue(cardsRef, (snapshot) => {
     const div = document.createElement("div");
     div.classList.add("card-item");
     div.innerHTML = `
-      <h3>${data.name}</h3>
-      <p>Price: ${data.price} pts</p>
-      <p>Stock: ${data.stock}</p>
-    `;
+  <h3>${data.name}</h3>
+  <p>
+    Price: ${data.price} pts 
+    ${
+      data.lastChange === "up"
+        ? "🔺"
+        : data.lastChange === "down"
+        ? "🔻"
+        : ""
+    }
+  </p>
+  <p>Stock: ${data.stock}</p>
+`;
     cardList.appendChild(div);
   }
 });
