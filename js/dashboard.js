@@ -1,6 +1,6 @@
 import { auth, database } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { ref, onValue, get, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 const userInfo = document.getElementById("user-info");
 const cardContainer = document.getElementById("card-container");
@@ -9,16 +9,42 @@ const logoutBtn = document.getElementById("logout");
 let currentUser = null;
 
 onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
 
-    const userSnap = await get(ref(database, "users/" + user.uid));
-    const userData = userSnap.val();
+  currentUser = user;
+
+  const userRef = ref(database, "users/" + user.uid);
+
+  try {
+    // Check if user node exists
+    const userSnap = await get(userRef);
+    let userData = userSnap.val();
+
+    if (!userData) {
+      console.log("User data not found in DB. Creating default node...");
+      // Create default user node
+      const defaultUserData = {
+        username: user.email.split("@")[0], // fallback username from email
+        points: 1000,
+        cards: {}
+      };
+      await set(userRef, defaultUserData);
+      userData = defaultUserData;
+      console.log("✅ Default user node created");
+    }
+
+    // Display user info
     userInfo.textContent = `${userData.username} — Points: ${userData.points}`;
 
+    // Load user's cards
     loadUserCards(userData.cards || {});
-  } else {
-    window.location.href = "index.html";
+
+  } catch (err) {
+    console.error("Error fetching or creating user data:", err);
+    alert("Failed to load your data. Please try again.");
   }
 });
 
