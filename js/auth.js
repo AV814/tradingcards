@@ -24,11 +24,17 @@ signupForm.addEventListener("submit", async (e) => {
     const user = userCredential.user;
 
     // Write new user data to Realtime Database
-    await set(ref(database, 'users/' + user.uid), {
-      username: username,
-      points: 1000,
-      cards: {}
-    });
+    try {
+  await set(ref(database, 'users/' + user.uid), {
+    username: username,
+    points: 1000,
+    cards: {}
+  });
+  console.log("User written successfully");
+} catch (err) {
+  console.error("Failed to write user:", err);
+}
+
 
     alert("Account created! Redirecting to dashboard...");
     window.location.href = "dashboard.html";
