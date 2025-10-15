@@ -119,12 +119,13 @@ async function sellCard(uid, cardId) {
     return;
   }
 
+  // 🔧 FIX: Ensure numeric types
   const sellPrice = Number(cardData.price);
   const currentPoints = Number(userData.points);
   const newPoints = currentPoints + sellPrice;
-  const newStock = (Number(cardData.stock) || 0) + 1;
-  userCards[cardId] -= 1;
+  const newStock = Number(cardData.stock) + 1;
 
+  userCards[cardId] -= 1;
   if (userCards[cardId] <= 0) delete userCards[cardId];
 
   await update(userRef, { points: newPoints, cards: userCards });
