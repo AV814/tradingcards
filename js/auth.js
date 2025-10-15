@@ -19,19 +19,17 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     const user = userCredential.user;
 
     // Create user record in Realtime Database
-    await set(ref(database, `users/${user.uid}`), {
-      username: username,
-      points: 1000,
-      cards: {}
-    });
+    try {
+  await set(ref(database, `users/${user.uid}`), {
+    username: username,
+    points: 1000,
+    cards: {}
+  });
+  console.log("User written successfully!");
+} catch (err) {
+  console.error("Database write failed:", err);
+}
 
-    alert("Account created! Redirecting to dashboard...");
-    window.location.href = "dashboard.html";
-
-  } catch (error) {
-    alert("Error: " + error.message);
-  }
-});
 
 // -------------------- LOGIN --------------------
 document.getElementById("login-form").addEventListener("submit", async (e) => {
