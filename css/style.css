@@ -150,3 +150,24 @@ button:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
+#card-container {
+  display: flex;          /* align items horizontally */
+  flex-wrap: wrap;        /* move to next line when row is full */
+  justify-content: center; /* center the row */
+  gap: 20px;              /* space between cards */
+  margin-top: 30px;
+}
+
+.card-item {
+  background: #1e1e1e;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  width: 200px;
+  text-align: center;
+  /* remove margin: auto */
+  margin: 0; 
+}
+
+
