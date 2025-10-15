@@ -119,9 +119,10 @@ async function sellCard(uid, cardId) {
     return;
   }
 
-  const sellPrice = cardData.price;
-  const newPoints = userData.points + sellPrice;
-  const newStock = cardData.stock + 1;
+  const sellPrice = Number(cardData.price);
+  const currentPoints = Number(userData.points);
+  const newPoints = currentPoints + sellPrice;
+  const newStock = (Number(cardData.stock) || 0) + 1;
   userCards[cardId] -= 1;
 
   if (userCards[cardId] <= 0) delete userCards[cardId];
