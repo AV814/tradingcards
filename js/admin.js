@@ -88,7 +88,7 @@ setInterval(() => {
   countdown--;
   countdownEl.textContent = countdown;
   if (countdown <= 0) updatePrices();
-}, 1000);
+}, 300);
 
 // Manual update button
 forceBtn.addEventListener("click", updatePrices);
