@@ -130,10 +130,3 @@ async function sellCard(uid, cardId) {
 
   alert(`You sold a ${cardData.name} for ${sellPrice} points!`);
 }
-
-// ✅ Logout
-logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
-  });
-});
