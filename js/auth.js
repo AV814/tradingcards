@@ -20,28 +20,30 @@ signupForm.addEventListener("submit", async (e) => {
   }
 
   try {
+    console.log("Attempting to create Firebase Auth user...");
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+    console.log("Firebase Auth user created:", user.uid);
 
     // Write new user data to Realtime Database
     try {
-  await set(ref(database, 'users/' + user.uid), {
-    username: username,
-    points: 1000,
-    cards: {}
-  });
-  console.log("User written successfully");
-} catch (err) {
-  console.error("Failed to write user:", err);
-}
+      console.log("Attempting to write user to Realtime Database...");
+      await set(ref(database, 'users/' + user.uid), {
+        username: username,
+        points: 1000,
+        cards: {}
+      });
+      console.log("User written successfully to Realtime Database!");
+      alert("Account created! Redirecting to dashboard...");
+      window.location.href = "dashboard.html";
+    } catch (dbError) {
+      console.error("Database write failed:", dbError);
+      alert("Account created in Auth, but failed to write to database. Check console for details.");
+    }
 
-
-    alert("Account created! Redirecting to dashboard...");
-    window.location.href = "dashboard.html";
-
-  } catch (error) {
-    alert(`Error creating account: ${error.message}`);
-    console.error("Signup error:", error);
+  } catch (authError) {
+    console.error("Signup error:", authError);
+    alert(`Error creating account: ${authError.message}`);
   }
 });
 
@@ -60,9 +62,10 @@ loginForm.addEventListener("submit", async (e) => {
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
+    console.log("Login successful");
     window.location.href = "dashboard.html";
-  } catch (error) {
-    alert(`Login error: ${error.message}`);
-    console.error("Login error:", error);
+  } catch (loginError) {
+    console.error("Login error:", loginError);
+    alert(`Login error: ${loginError.message}`);
   }
 });
