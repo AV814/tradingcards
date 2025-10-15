@@ -23,31 +23,46 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadStore(uid, points) {
   const cardsRef = ref(database, "cards");
-  onValue(cardsRef, async (snapshot) => {
-    const cards = snapshot.val();
-    storeContainer.innerHTML = ""; // Clear old cards
+  onValue(ref(database, "cards"), (snapshot) => {
+  const cards = snapshot.val();
+  cardContainer.innerHTML = ""; // Clear current display
 
-    for (const [id, data] of Object.entries(cards)) {
-      const cardDiv = document.createElement("div");
-      cardDiv.classList.add("card-item");
-      cardDiv.innerHTML = `
-        <h3>${data.name}</h3>
-        <p>Price: ${data.price} pts</p>
-        <p>Stock: ${data.stock}</p>
-        <button class="buy" data-id="${id}">Buy</button>
-        <button class="sell" data-id="${id}">Sell</button>
-      `;
-      storeContainer.appendChild(cardDiv);
-    }
+  // Loop through every card entry
+  for (const [id, data] of Object.entries(cards)) {
+    const div = document.createElement("div");
+    div.classList.add("card-item");
 
-    // Set up event listeners
-    document.querySelectorAll(".buy").forEach(btn =>
-      btn.addEventListener("click", () => buyCard(uid, btn.dataset.id))
-    );
-    document.querySelectorAll(".sell").forEach(btn =>
-      btn.addEventListener("click", () => sellCard(uid, btn.dataset.id))
-    );
-  });
+    // 🔺 / 🔻 visual indicator
+    const indicator =
+      data.lastChange === "up"
+        ? "🔺"
+        : data.lastChange === "down"
+        ? "🔻"
+        : "";
+
+    const indicatorClass =
+      data.lastChange === "up"
+        ? "up"
+        : data.lastChange === "down"
+        ? "down"
+        : "";
+
+    // Card HTML layout
+    div.innerHTML = `
+      <h3>${data.name}</h3>
+      <p class="${indicatorClass}">
+        Price: ${data.price} pts ${indicator}
+      </p>
+      <p>Stock: ${data.stock}</p>
+      <button class="buy-btn" data-id="${id}">Buy</button>
+      <button class="sell-btn" data-id="${id}">Sell</button>
+    `;
+
+    cardContainer.appendChild(div);
+  }
+
+  // You’ll later attach event listeners here for the Buy/Sell buttons
+});
 }
 
 // Buy card
