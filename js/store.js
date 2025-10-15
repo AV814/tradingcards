@@ -119,7 +119,7 @@ async function sellCard(uid, cardId) {
     return;
   }
 
-  const sellPrice = Math.floor(cardData.price * 0.8); // Sell for 80% of market price
+  const sellPrice = cardData.price;
   const newPoints = userData.points + sellPrice;
   const newStock = cardData.stock + 1;
   userCards[cardId] -= 1;
