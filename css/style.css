@@ -88,3 +88,22 @@ li {
   margin: 5px;
 }
 
+#card-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+}
+
+#countdown {
+  font-weight: bold;
+}
+
+#force-update {
+  background: #00b894;
+  margin-top: 20px;
+}
+
+#force-update:hover {
+  background: #019670;
+}
