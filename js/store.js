@@ -51,6 +51,7 @@ function loadStore(uid, points) {
 
       div.innerHTML = `
         <h3>${data.name}</h3>
+        <img src="${data.image}" alt="${data.name}" class="card-image" />
         <p class="${indicatorClass}">
           Price: ${data.price} pts ${indicator}
         </p>
