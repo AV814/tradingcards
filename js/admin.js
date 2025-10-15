@@ -17,29 +17,45 @@ let countdown = intervalSeconds;
 
 // Load and display all cards
 const cardsRef = ref(database, "cards");
+
 onValue(cardsRef, (snapshot) => {
   const cards = snapshot.val();
-  cardList.innerHTML = "";
+  cardList.innerHTML = ""; // clear the old list
+
   for (const [id, data] of Object.entries(cards)) {
     const div = document.createElement("div");
     div.classList.add("card-item");
-    div.innerHTML = `
-  <h3>${data.name}</h3>
-  <p>
-    Price: ${data.price} pts 
-    ${
+
+    // Determine visual indicator (🔺 / 🔻)
+    const indicator =
       data.lastChange === "up"
         ? "🔺"
         : data.lastChange === "down"
         ? "🔻"
-        : ""
-    }
-  </p>
-  <p>Stock: ${data.stock}</p>
-`;
+        : "";
+
+    // Optional colored class for price text
+    const indicatorClass =
+      data.lastChange === "up"
+        ? "up"
+        : data.lastChange === "down"
+        ? "down"
+        : "";
+
+    // Display the card info
+    div.innerHTML = `
+      <h3>${data.name}</h3>
+      <p class="${indicatorClass}">
+        Price: ${data.price} pts ${indicator}
+      </p>
+      <p>Stock: ${data.stock}</p>
+      <p><small>Original: ${data.original_price}</small></p>
+    `;
+
     cardList.appendChild(div);
   }
 });
+
 
 // Demand-based price adjustments
 async function updatePrices() {
