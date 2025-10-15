@@ -12,7 +12,7 @@ const cardList = document.getElementById("card-list");
 const countdownEl = document.getElementById("countdown");
 const forceBtn = document.getElementById("force-update");
 
-let intervalSeconds = 180; // update every 3 minutes
+let intervalSeconds = 100; // update every 3 minutes
 let countdown = intervalSeconds;
 
 // Load and display all cards
@@ -88,7 +88,7 @@ setInterval(() => {
   countdown--;
   countdownEl.textContent = countdown;
   if (countdown <= 0) updatePrices();
-}, 300);
+}, 1000);
 
 // Manual update button
 forceBtn.addEventListener("click", updatePrices);
