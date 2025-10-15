@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Price Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | Card Trader Game</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <h1>Admin Price Control</h1>
-  <p>Prices will fluctuate automatically while this page is open.</p>
+  <h1>-Admin Panel-</h1>
+  <p>This page automatically updates card prices every few minutes. Keep it open on one computer!</p>
 
-  <script type="module" src="js/firebase.js"></script>
-  <script type="module" src="js/priceFluctuation.js"></script>
+  <div id="card-list"></div>
+
+  <p>Next update in: <span id="countdown">--</span> seconds</p>
+  <button id="force-update">Force Price Update</button>
+
+  <script type="module" src="js/admin.js"></script>
 </body>
 </html>
