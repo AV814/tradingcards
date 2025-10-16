@@ -38,16 +38,18 @@ async function loadProfile(uid) {
   }
 
   cardListEl.innerHTML = Object.entries(userCards)
-    .map(([cardId, quantity]) => {
-      const card = allCards[cardId];
-      if (!card) return "";
-      return `
-        <div class="card-item">
-          <h3>${card.name}</h3>
-          <p>Owned: ${quantity}</p>
-          <p>Current Value: ${card.price} pts</p>
-        </div>
-      `;
-    })
-    .join("");
+  .map(([cardId, quantity]) => {
+    const card = allCards[cardId];
+    if (!card) return "";
+    const image = card.image || "https://via.placeholder.com/100?text=No+Image";
+    return `
+      <div class="card-item">
+        <img src="${image}" alt="${card.name}" style="width:100px;height:100px;border-radius:10px;">
+        <h3>${card.name}</h3>
+        <p>Owned: ${quantity}</p>
+        <p>Value: ${card.price} pts</p>
+      </div>
+    `;
+  })
+  .join("");
 }
