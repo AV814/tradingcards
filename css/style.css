@@ -200,3 +200,28 @@ button:hover {
   margin: 10px;
   border-radius: 10px;
 }
+
+#card-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+}
+
+.card-item {
+  background: #2c2c2c;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+  width: 150px;
+  transition: transform 0.2s ease;
+}
+
+.card-item:hover {
+  transform: scale(1.05);
+}
+
+.card-item img {
+  display: block;
+  margin: 0 auto 8px;
+}
