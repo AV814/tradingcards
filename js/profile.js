@@ -28,7 +28,7 @@ async function loadProfile(uid) {
     return;
   }
 
-  playerNameEl.textContent = userData.name || "Unknown Player";
+  playerNameEl.textContent = userData.username || "Unknown Player";
   playerPointsEl.textContent = `${userData.points || 0} pts`;
 
   const userCards = userData.cards || {};
