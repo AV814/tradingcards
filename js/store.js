@@ -101,7 +101,7 @@ async function buyCard(uid, cardId) {
   await update(userRef, { points: newPoints, cards: userCards });
   await update(cardRef, { stock: newStock });
 
-  alert(`You bought a ${cardData.name}!`);
+  //alert(`You bought a ${cardData.name}!`);
 }
 
 // ✅ Sell card
@@ -131,5 +131,5 @@ async function sellCard(uid, cardId) {
   await update(userRef, { points: newPoints, cards: userCards });
   await update(cardRef, { stock: newStock });
 
-  alert(`You sold a ${cardData.name} for ${sellPrice} points!`);
+  //alert(`You sold a ${cardData.name} for ${sellPrice} points!`);
 }
