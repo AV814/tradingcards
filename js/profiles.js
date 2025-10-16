@@ -13,7 +13,7 @@ onValue(usersRef, (snapshot) => {
 
   const userArray = Object.entries(users).map(([uid, data]) => ({
     uid,
-    name: data.name || "Unknown Player",
+    name: data.username || "Unknown Player",
     points: data.points || 0
   }));
 
