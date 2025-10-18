@@ -225,3 +225,12 @@ button:hover {
   display: block;
   margin: 0 auto 8px;
 }
+
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;   /* ensures it fills the box without distortion */
+  border-radius: 50%;  /* makes it circular */
+  border: 2px solid #ccc;
+  margin-bottom: 10px;
+}
