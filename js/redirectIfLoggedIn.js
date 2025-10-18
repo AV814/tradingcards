@@ -5,6 +5,6 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/fi
 onAuthStateChanged(auth, (user) => {
   if (user) {
     // If logged in, go straight to dashboard
-    window.location.href = "dashboard.html";
+    window.location.href = "menu.html";
   }
 });
