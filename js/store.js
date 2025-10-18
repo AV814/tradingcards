@@ -1,13 +1,12 @@
 import { auth, database } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-// ✅ Make sure your store.html has these elements
 const userInfo = document.getElementById("user-info");
-const cardContainer = document.getElementById("card-container"); // 🔥 FIXED: you used `storeContainer` before
-const logoutBtn = document.getElementById("logout");
+const cardContainer = document.getElementById("card-container");
 
 let currentUser = null;
+let currentPoints = 0; // ✅ Keep local copy to update display faster
 
 // Track login state
 onAuthStateChanged(auth, async (user) => {
@@ -15,26 +14,26 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     const userSnap = await get(ref(database, "users/" + user.uid));
     const userData = userSnap.val();
+    currentPoints = userData.points;
     userInfo.textContent = `${userData.username} — Points: ${userData.points}`;
-    loadStore(user.uid, userData.points);
+    loadStore(user.uid);
   } else {
     window.location.href = "index.html";
   }
 });
 
-// ✅ Load and display all cards live
-function loadStore(uid, points) {
+// ✅ Load and display all cards
+function loadStore(uid) {
   const cardsRef = ref(database, "cards");
 
   onValue(cardsRef, (snapshot) => {
     const cards = snapshot.val();
-    cardContainer.innerHTML = ""; // Clear before rendering new data
+    cardContainer.innerHTML = "";
 
     for (const [id, data] of Object.entries(cards)) {
       const div = document.createElement("div");
       div.classList.add("card-item");
 
-      // 🔺 / 🔻 price indicator
       const indicator =
         data.lastChange === "up"
           ? "🔺"
@@ -63,15 +62,20 @@ function loadStore(uid, points) {
       cardContainer.appendChild(div);
     }
 
-    // ✅ Attach buy/sell listeners AFTER cards are rendered
+    // Attach buy/sell listeners AFTER cards render
     document.querySelectorAll(".buy-btn").forEach((btn) => {
       btn.addEventListener("click", () => buyCard(uid, btn.dataset.id));
     });
-
     document.querySelectorAll(".sell-btn").forEach((btn) => {
       btn.addEventListener("click", () => sellCard(uid, btn.dataset.id));
     });
   });
+}
+
+// ✅ Update user points in UI
+function updatePointsDisplay(points) {
+  currentPoints = points;
+  userInfo.textContent = `${currentUser.displayName || "User"} — Points: ${points}`;
 }
 
 // ✅ Buy card
@@ -101,7 +105,8 @@ async function buyCard(uid, cardId) {
   await update(userRef, { points: newPoints, cards: userCards });
   await update(cardRef, { stock: newStock });
 
-  //alert(`You bought a ${cardData.name}!`);
+  // ✅ Instantly update displayed points
+  updatePointsDisplay(newPoints);
 }
 
 // ✅ Sell card
@@ -119,10 +124,8 @@ async function sellCard(uid, cardId) {
     return;
   }
 
-  // 🔧 FIX: Ensure numeric types
   const sellPrice = Number(cardData.price);
-  const currentPoints = Number(userData.points);
-  const newPoints = currentPoints + sellPrice;
+  const newPoints = Number(userData.points) + sellPrice;
   const newStock = Number(cardData.stock) + 1;
 
   userCards[cardId] -= 1;
@@ -131,5 +134,6 @@ async function sellCard(uid, cardId) {
   await update(userRef, { points: newPoints, cards: userCards });
   await update(cardRef, { stock: newStock });
 
-  //alert(`You sold a ${cardData.name} for ${sellPrice} points!`);
+  // ✅ Instantly update displayed points
+  updatePointsDisplay(newPoints);
 }
