@@ -7,15 +7,15 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="profile-section">
-    <img id="profile-pic" src="images/default-profile.png" alt="Profile Picture" class="profile-pic" />
-    <input type="file" id="profile-upload" accept="image/*" hidden />
-    <button id="upload-btn">Change Picture</button>
-    <h2 id="username"></h2>
-    <p id="points"></p>
+  <h1>Your Card Collection</h1>
+  <div id="profile-section">
+    <img id="profile-pic" src="images/default-pfp.png" alt="Profile Picture" class="profile-pic" />
+    <input type="file" id="upload-pfp" accept="image/*" style="display:none;" />
+    <button id="change-pfp">Change Profile Picture</button>
   </div>
 
-  <h1>Your Card Collection</h1>
+  <p id="user-info"></p>
+
   <div id="card-container"></div>
 
   <a href="store.html" class="button">To Shop</a>
