@@ -5,21 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | ProjectCards</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Profile header layout */
+    #profile-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 15px;
+      margin: 20px;
+    }
+
+    .profile-pic {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+    }
+
+    #user-info {
+      font-size: 1.2em;
+      font-weight: 500;
+      color: #333;
+    }
+
+    /* Card section layout */
+    #card-container {
+      margin: 20px;
+    }
+
+    /* Buttons */
+    .button,
+    #logout,
+    #change-pfp {
+      background-color: #00b894;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+
+    .button:hover,
+    #logout:hover,
+    #change-pfp:hover {
+      background-color: #019973;
+    }
+
+    /* Footer (change pfp at bottom) */
+    #footer-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+      gap: 10px;
+    }
+  </style>
 </head>
 <body>
   <h1>Your Card Collection</h1>
-  <div id="profile-section">
+
+  <!-- Top profile section -->
+  <div id="profile-header">
     <img id="profile-pic" src="images/default-pfp.png" alt="Profile Picture" class="profile-pic" />
-    <input type="file" id="upload-pfp" accept="image/*" style="display:none;" />
-    <button id="change-pfp">Change Profile Picture</button>
+    <p id="user-info"></p>
   </div>
 
-  <p id="user-info"></p>
+  <!-- Hidden upload input -->
+  <input type="file" id="upload-pfp" accept="image/*" style="display:none;" />
 
+  <!-- Card list -->
   <div id="card-container"></div>
 
-  <a href="store.html" class="button">To Shop</a>
-  <button id="logout">Logout</button>
+  <!-- Navigation + footer buttons -->
+  <div id="footer-section">
+    <a href="store.html" class="button">To Shop</a>
+    <button id="logout">Logout</button>
+    <button id="change-pfp">Change Profile Picture</button>
+  </div>
 
   <script type="module" src="js/dashboard.js"></script>
 </body>
