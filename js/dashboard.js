@@ -1,8 +1,26 @@
-import { auth, database } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { ref, onValue, get, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { auth, database, storage } from "./firebase.js";
+import {
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import {
+  ref,
+  onValue,
+  get,
+  set,
+  update,
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import {
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
-const userInfo = document.getElementById("user-info");
+const usernameEl = document.getElementById("username");
+const pointsEl = document.getElementById("points");
+const profilePic = document.getElementById("profile-pic");
+const uploadBtn = document.getElementById("upload-btn");
+const uploadInput = document.getElementById("profile-upload");
 const cardContainer = document.getElementById("card-container");
 const logoutBtn = document.getElementById("logout");
 
@@ -15,37 +33,52 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentUser = user;
-
   const userRef = ref(database, "users/" + user.uid);
 
   try {
-    // Check if user node exists
     const userSnap = await get(userRef);
     let userData = userSnap.val();
 
     if (!userData) {
-      console.log("User data not found in DB. Creating default node...");
-      // Create default user node
       const defaultUserData = {
-        username: user.email.split("@")[0], // fallback username from email
+        username: user.email.split("@")[0],
         points: 1000,
-        cards: {}
+        cards: {},
+        profilePic: "images/default-profile.png",
       };
       await set(userRef, defaultUserData);
       userData = defaultUserData;
-      console.log("✅ Default user node created");
     }
 
     // Display user info
-    userInfo.textContent = `${userData.username} — Points: ${userData.points}`;
+    usernameEl.textContent = userData.username;
+    pointsEl.textContent = `Points: ${userData.points}`;
+    profilePic.src = userData.profilePic || "images/default-profile.png";
 
-    // Load user's cards
+    // Load cards
     loadUserCards(userData.cards || {});
-
   } catch (err) {
-    console.error("Error fetching or creating user data:", err);
-    alert("Failed to load your data. Please try again.");
+    console.error("Error loading user data:", err);
+    alert("Error loading data, please reload.");
   }
+});
+
+uploadBtn.addEventListener("click", () => uploadInput.click());
+
+uploadInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file || !currentUser) return;
+
+  const imgRef = storageRef(storage, `profile_pics/${currentUser.uid}.jpg`);
+  await uploadBytes(imgRef, file);
+
+  const downloadURL = await getDownloadURL(imgRef);
+  await update(ref(database, "users/" + currentUser.uid), {
+    profilePic: downloadURL,
+  });
+
+  profilePic.src = downloadURL;
+  alert("Profile picture updated!");
 });
 
 function loadUserCards(userCards) {
@@ -56,31 +89,4 @@ function loadUserCards(userCards) {
     return;
   }
 
-  // Fetch all card details to get images
-  onValue(ref(database, "cards"), (snapshot) => {
-    const allCards = snapshot.val();
-
-    for (const [id, quantity] of Object.entries(userCards)) {
-      const cardData = allCards[id];
-      if (!cardData) continue; // safety check
-
-      const div = document.createElement("div");
-      div.classList.add("card-item");
-
-      div.innerHTML = `
-        <h3>${cardData.name}</h3>
-        <img src="${cardData.image}" alt="${cardData.name}" class="card-image" />
-        <p>Owned: ${quantity}</p>
-      `;
-
-      cardContainer.appendChild(div);
-    }
-  });
-}
-
-// Logout button
-logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
-  });
-});
+  on
