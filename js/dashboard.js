@@ -56,7 +56,7 @@ function loadUserCards(userCards) {
   cardContainer.innerHTML = "";
 
   if (!userCards || Object.keys(userCards).length === 0) {
-    cardContainer.innerHTML = "<p>You don't own any cards yet!</p>";
+    cardContainer.innerHTML = "<p>Inventory is currently empty.</p>";
     return;
   }
 
