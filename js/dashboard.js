@@ -38,7 +38,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     // Display user info & profile picture
-    userInfo.innerHTML = `${userData.username}<br><span class="points">Points: ${userData.points}</span>`;
+    userInfo.innerHTML = `${userData.username}<br><span class="points">$${userData.points}</span>`;
     if (userData.profilePicture) {
       profilePic.src = userData.profilePicture;
     }
