@@ -100,12 +100,12 @@ li {
 }
 
 #force-update {
-  background: #00b894;
+  background: #fff;
   margin-top: 20px;
 }
 
 #force-update:hover {
-  background: #019670;
+  background: #fff;
 }
 
 .card-item {
