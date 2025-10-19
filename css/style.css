@@ -1,7 +1,7 @@
 body {
   font-family: Courier, sans-serif;
   text-align: center;
-  background: #23363D;
+  background: #676D78;
   color: white;
 }
 
@@ -55,7 +55,7 @@ ul {
 }
 
 li {
-  background: #23363D;
+  background: #676D78;
   margin: 8px auto;
   padding: 10px;
   width: 250px;
