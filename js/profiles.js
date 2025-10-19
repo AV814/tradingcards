@@ -19,7 +19,7 @@ onValue(usersRef, (snapshot) => {
   }));
 
   // Sort alphabetically by name
-  userArray.sort((a, b) => a.name.localeCompare(b.name));
+  userArray.sort((a, b) => b.points - a.points);
 
   profileList.innerHTML = userArray
     .map(
