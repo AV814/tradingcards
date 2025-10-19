@@ -32,8 +32,15 @@ async function loadProfile(uid) {
 
     // 🧍 Display username, points, and profile picture
     playerNameEl.textContent = userData.username || "Unknown Player";
-    playerPointsEl.textContent = `${userData.points || 0} pts`;
-    playerPfpEl.src = userData.profilePicture || "images/default-pfp.png";
+    playerPointsEl.textContent = `$${userData.points || 0}`;
+
+    // ✅ Fix: Handle profile picture path correctly
+    const pfp = userData.profilePicture;
+    if (pfp && (pfp.startsWith("http://") || pfp.startsWith("https://"))) {
+      playerPfpEl.src = pfp;
+    } else {
+      playerPfpEl.src = "images/default-pfp.png";
+    }
 
     // 🎴 Display cards
     const userCards = userData.cards || {};
@@ -57,7 +64,6 @@ async function loadProfile(uid) {
         `;
       })
       .join("");
-
   } catch (err) {
     console.error("Error loading profile:", err);
     playerNameEl.textContent = "Error loading profile.";
