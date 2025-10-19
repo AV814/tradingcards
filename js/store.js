@@ -1,13 +1,14 @@
 import { auth, database } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { ref, onValue, update, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { ref, update, get, onValue, off } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 const userInfo = document.getElementById("user-info");
 const cardContainer = document.getElementById("card-container");
 
 let currentUser = null;
 let currentPoints = 0;
-let currentUserCards = {}; // 🆕 track owned cards
+let currentUserCards = {};
+let cardsListener = null; // 🆕 track listener
 
 // Track login state
 onAuthStateChanged(auth, async (user) => {
@@ -16,7 +17,7 @@ onAuthStateChanged(auth, async (user) => {
     const userSnap = await get(ref(database, "users/" + user.uid));
     const userData = userSnap.val();
     currentPoints = userData.points;
-    currentUserCards = userData.cards || {}; // 🆕 store owned cards
+    currentUserCards = userData.cards || {};
     userInfo.textContent = `$${userData.points}`;
     loadStore(user.uid);
   } else {
@@ -24,66 +25,77 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// ✅ Load and display all cards
-async function loadStore(uid) {
+// ✅ Load store once with a listener (no duplicates)
+function loadStore(uid) {
   const cardsRef = ref(database, "cards");
 
-  onValue(cardsRef, async (snapshot) => {
-    const cards = snapshot.val();
-    cardContainer.innerHTML = "";
+  // Remove any previous listener
+  if (cardsListener) off(cardsRef, "value", cardsListener);
 
-    // 🔄 Refresh user data to show up-to-date owned counts
+  cardsListener = onValue(cardsRef, async (snapshot) => {
+    const cards = snapshot.val();
+    if (!cards) return;
+
+    // Refresh user cards once each update
     const userSnap = await get(ref(database, "users/" + uid));
     const userData = userSnap.val();
     currentUserCards = userData.cards || {};
+    currentPoints = userData.points;
+    userInfo.textContent = `$${currentPoints}`;
 
-    for (const [id, data] of Object.entries(cards)) {
-      const div = document.createElement("div");
-      div.classList.add("card-item");
-
-      const indicator =
-        data.lastChange === "up"
-          ? "🔺"
-          : data.lastChange === "down"
-          ? "🔻"
-          : "";
-
-      const indicatorClass =
-        data.lastChange === "up"
-          ? "up"
-          : data.lastChange === "down"
-          ? "down"
-          : "";
-
-      // 🆕 show how many the user owns
-      const ownedCount = currentUserCards[id] || 0;
-
-      div.innerHTML = `
-        <h3>${data.name}</h3>
-        <img src="${data.image}" alt="${data.name}" class="card-image" />
-        <p class="${indicatorClass}">
-          Price: ${data.price} pts ${indicator}
-        </p>
-        <p>Stock: ${data.stock}</p>
-        <p>You own: <strong>${ownedCount}</strong></p>
-        <button class="buy-btn" data-id="${id}">Buy</button>
-        <button class="sell-btn" data-id="${id}">Sell</button>
-      `;
-
-      cardContainer.appendChild(div);
-    }
-
-    // Attach buy/sell listeners AFTER cards render
-    document.querySelectorAll(".buy-btn").forEach((btn) => {
-      btn.addEventListener("click", () => buyCard(uid, btn.dataset.id));
-    });
-    document.querySelectorAll(".sell-btn").forEach((btn) => {
-      btn.addEventListener("click", () => sellCard(uid, btn.dataset.id));
-    });
+    renderStore(cards, uid);
   });
 }
 
-// ✅ Update user points in UI
+// ✅ Render store UI
+function renderStore(cards, uid) {
+  cardContainer.innerHTML = "";
+
+  for (const [id, data] of Object.entries(cards)) {
+    const div = document.createElement("div");
+    div.classList.add("card-item");
+
+    const indicator =
+      data.lastChange === "up"
+        ? "🔺"
+        : data.lastChange === "down"
+        ? "🔻"
+        : "";
+
+    const indicatorClass =
+      data.lastChange === "up"
+        ? "up"
+        : data.lastChange === "down"
+        ? "down"
+        : "";
+
+    const ownedCount = currentUserCards[id] || 0;
+
+    div.innerHTML = `
+      <h3>${data.name}</h3>
+      <img src="${data.image}" alt="${data.name}" class="card-image" />
+      <p class="${indicatorClass}">
+        Price: ${data.price} pts ${indicator}
+      </p>
+      <p>Stock: ${data.stock}</p>
+      <p>You own: <strong>${ownedCount}</strong></p>
+      <button class="buy-btn" data-id="${id}">Buy</button>
+      <button class="sell-btn" data-id="${id}">Sell</button>
+    `;
+
+    cardContainer.appendChild(div);
+  }
+
+  // Attach listeners
+  document.querySelectorAll(".buy-btn").forEach((btn) => {
+    btn.addEventListener("click", () => buyCard(uid, btn.dataset.id));
+  });
+  document.querySelectorAll(".sell-btn").forEach((btn) => {
+    btn.addEventListener("click", () => sellCard(uid, btn.dataset.id));
+  });
+}
+
+// ✅ Update points in UI
 function updatePointsDisplay(points) {
   currentPoints = points;
   userInfo.textContent = `$${points}`;
@@ -117,7 +129,6 @@ async function buyCard(uid, cardId) {
   await update(cardRef, { stock: newStock });
 
   updatePointsDisplay(newPoints);
-  loadStore(uid); // 🆕 refresh display
 }
 
 // ✅ Sell card
@@ -146,5 +157,4 @@ async function sellCard(uid, cardId) {
   await update(cardRef, { stock: newStock });
 
   updatePointsDisplay(newPoints);
-  loadStore(uid); // 🆕 refresh display
 }
