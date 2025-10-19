@@ -8,10 +8,14 @@
   <style>
     body {
       text-align: center;
+      background-color: #1a1a1a;
       color: #C2C2C2;
       font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
+    /* Profile header same as dashboard */
     #profile-header {
       display: flex;
       flex-direction: column;
@@ -43,6 +47,7 @@
       margin-bottom: 20px;
     }
 
+    /* Card container */
     #card-list {
       display: flex;
       flex-wrap: wrap;
@@ -67,10 +72,17 @@
       object-fit: cover;
     }
 
+    h2 {
+      color: #C2C2C2;
+      margin-top: 30px;
+    }
+
     a {
       color: #00cec9;
       text-decoration: none;
       font-weight: bold;
+      display: inline-block;
+      margin: 20px;
     }
 
     a:hover {
@@ -83,7 +95,7 @@
   <!-- Profile Header -->
   <div id="profile-header">
     <img id="player-pfp" src="images/default-pfp.png" alt="Profile Picture" class="profile-pic" />
-    <h1 id="player-name">Loading...</h1>
+    <p id="player-name">Loading...</p>
     <p id="player-points"></p>
   </div>
 
