@@ -159,10 +159,10 @@ button:hover {
 }
 
 .card-item {
-  background: #1e1e1e;
+  background: #B5B5B5;
   color: white;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 1px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   width: 200px;
   text-align: center;
