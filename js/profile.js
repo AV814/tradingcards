@@ -34,38 +34,42 @@ async function loadProfile(uid) {
     playerNameEl.textContent = userData.username || "Unknown Player";
     playerPointsEl.textContent = `$${userData.points || 0}`;
 
-    // ✅ Fix: Handle profile picture path correctly
+    // ✅ Profile picture
     const pfp = userData.profilePicture;
-    if (pfp && (pfp.startsWith("http://") || pfp.startsWith("https://"))) {
-      playerPfpEl.src = pfp;
-    } else {
-      playerPfpEl.src = "images/default-pfp.png";
-    }
+    playerPfpEl.src =
+      pfp && (pfp.startsWith("http://") || pfp.startsWith("https://"))
+        ? pfp
+        : "images/default-pfp.png";
 
-    // 🎴 Display cards
+    // 🎴 Display cards (same style as dashboard)
     const userCards = userData.cards || {};
-    if (Object.keys(userCards).length === 0) {
-      cardListEl.innerHTML = "<p>This player has no cards yet.</p>";
-      return;
-    }
-
-    cardListEl.innerHTML = Object.entries(userCards)
-      .map(([cardId, quantity]) => {
-        const card = allCards[cardId];
-        if (!card) return "";
-        const image = card.image || "https://via.placeholder.com/100?text=No+Image";
-        return `
-          <div class="card-item">
-            <img src="${image}" alt="${card.name}">
-            <h3>${card.name}</h3>
-            <p>Owned: ${quantity}</p>
-            <p>Value: ${card.price} pts</p>
-          </div>
-        `;
-      })
-      .join("");
+    renderCards(userCards, allCards);
   } catch (err) {
     console.error("Error loading profile:", err);
     playerNameEl.textContent = "Error loading profile.";
+  }
+}
+
+// ✅ This matches the dashboard style exactly
+function renderCards(userCards, allCards) {
+  cardListEl.innerHTML = "";
+
+  if (!userCards || Object.keys(userCards).length === 0) {
+    cardListEl.innerHTML = "<p>This player has no cards yet.</p>";
+    return;
+  }
+
+  for (const [id, quantity] of Object.entries(userCards)) {
+    const cardData = allCards[id];
+    if (!cardData) continue;
+
+    const div = document.createElement("div");
+    div.classList.add("card-item");
+    div.innerHTML = `
+      <h3>${cardData.name}</h3>
+      <img src="${cardData.image}" alt="${cardData.name}" class="card-image" />
+      <p>Quantity: ${quantity}</p>
+    `;
+    cardListEl.appendChild(div);
   }
 }
