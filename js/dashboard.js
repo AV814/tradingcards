@@ -74,7 +74,7 @@ function loadUserCards(userCards) {
       div.innerHTML = `
         <h3>${cardData.name}</h3>
         <img src="${cardData.image}" alt="${cardData.name}" class="card-image" />
-        <p>Owned: ${quantity}</p>
+        <p>Quantity: ${quantity}</p>
       `;
       cardContainer.appendChild(div);
     }
