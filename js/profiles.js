@@ -7,7 +7,7 @@ const usersRef = ref(database, "users");
 onValue(usersRef, (snapshot) => {
   const users = snapshot.val();
   if (!users) {
-    profileList.innerHTML = "<p>No players found yet.</p>";
+    profileList.innerHTML = "<p>No current results.</p>";
     return;
   }
 
