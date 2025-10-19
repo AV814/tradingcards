@@ -130,53 +130,87 @@ async function updatePrices() {
   countdown = intervalSeconds;
 }
 
-// --- Force-sell function ---
-async function forceSellAllCards() {
-  console.log("🚨 Starting global sell + reset...");
+import { database } from "./firebase.js";
+import {
+  ref,
+  onValue,
+  update,
+  get,
+  remove,
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-  const usersSnap = await get(usersRef);
-  const users = usersSnap.val() || {};
+const cardList = document.getElementById("card-list");
+const countdownEl = document.getElementById("countdown");
+const forceBtn = document.getElementById("force-update");
+const sellAllBtn = document.getElementById("sell-all"); // <-- make sure your HTML has this button
 
-  const cardsSnap = await get(cardsRef);
-  const cards = cardsSnap.val() || {};
+let intervalSeconds = 100;
+let countdown = intervalSeconds;
 
-  // Loop through every user
-  for (const [uid, userData] of Object.entries(users)) {
-    const inventory = userData.inventory || {};
-    let totalRefund = 0;
+// (existing onValue/cards display/updatePrices functions remain the same)
 
-    // Go through each card the user owns
-    for (const [cardName, quantity] of Object.entries(inventory)) {
-      // Find the matching card in database
-      const cardEntry = Object.values(cards).find(c => c.name === cardName);
-      if (!cardEntry) continue;
 
-      const cardPrice = parseInt(cardEntry.price);
-      const ownedCount = parseInt(quantity);
-      totalRefund += cardPrice * ownedCount;
+// 🟢 FORCE SELL + RESET FUNCTION
+async function forceSellAndReset() {
+  const cardsSnap = await get(ref(database, "cards"));
+  const usersSnap = await get(ref(database, "users"));
+
+  if (!cardsSnap.exists() || !usersSnap.exists()) return;
+
+  const cards = cardsSnap.val();
+  const users = usersSnap.val();
+
+  // Clone cards so we can track updated stock
+  const updatedCards = { ...cards };
+  const userUpdates = {};
+
+  for (const [userId, userData] of Object.entries(users)) {
+    let userPoints = userData.points || 0;
+    const ownedCards = userData.cards || {};
+
+    // Sell each owned card
+    for (const [cardName, quantity] of Object.entries(ownedCards)) {
+      const card = cards[cardName];
+      if (!card) continue;
+
+      const cardPrice = parseInt(card.price);
+      const amount = parseInt(quantity);
+
+      // Add value to user points
+      userPoints += cardPrice * amount;
+
+      // Return stock
+      updatedCards[cardName].stock =
+        parseInt(updatedCards[cardName].stock) + amount;
     }
 
-    // Update user's balance and clear inventory
-    const currentPoints = parseInt(userData.points || 0);
-    const newBalance = currentPoints + totalRefund;
-
-    await update(ref(database, `users/${uid}`), {
-      points: newBalance,
-      inventory: {} // clear all owned cards
-    });
+    // Clear user’s cards and update points
+    userUpdates[userId] = {
+      ...userData,
+      points: userPoints,
+      cards: {}, // sold everything
+    };
   }
 
-  // Reset every card price to its original
-  for (const [id, card] of Object.entries(cards)) {
-    await update(ref(database, "cards/" + id), {
-      price: card.original_price,
-      lastChange: "reset"
-    });
+  // Reset cards to original prices and stock
+  for (const [cardName, cardData] of Object.entries(updatedCards)) {
+    updatedCards[cardName].price = parseInt(cardData.original_price);
+    updatedCards[cardName].stock = parseInt(cardData.original_stock);
+    updatedCards[cardName].lastChange = "reset";
   }
 
-  console.log("✅ All user cards sold and prices reset!");
-  alert("✅ Global sell completed! All user cards sold and prices reset.");
+  // Batch updates
+  await update(ref(database), {
+    cards: updatedCards,
+    users: userUpdates,
+  });
+
+  console.log("✅ All cards sold, user points updated, and market reset!");
+  alert("All players' cards sold and market reset!");
 }
+
+// 🔘 Hook up the button
+sellAllBtn.addEventListener("click", forceSellAndReset);
 
 
 // --- Countdown auto-updates ---
