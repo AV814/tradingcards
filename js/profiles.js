@@ -28,7 +28,7 @@ onValue(usersRef, (snapshot) => {
           <img src="${u.pfp}" alt="${u.name}'s picture" class="profile-pic-square">
           <div class="profile-info">
             <a href="profile.html?id=${u.uid}" class="profile-name">${u.name}</a>
-            <p class="profile-points">${u.points} pts</p>
+            <p class="profile-points">$${u.points}</p>
           </div>
         </div>
       `
