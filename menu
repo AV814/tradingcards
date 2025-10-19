@@ -59,10 +59,9 @@
     img.game-logo {
       width: 180px;
       height: 180px;
-      border-radius: 50%;
+      border-radius: 5%;
       object-fit: cover;
       margin-bottom: 20px;
-      box-shadow: 0 0 20px rgba(0, 206, 201, 0.5);
     }
 
     footer {
