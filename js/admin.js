@@ -132,7 +132,7 @@ async function updatePrices() {
 
 // --- Force-sell function ---
 async function forceSellAllCards() {
-  console.log("🚨 Starting global card sell + reset...");
+  console.log("🚨 Starting global sell + reset...");
 
   const usersSnap = await get(usersRef);
   const users = usersSnap.val() || {};
@@ -140,38 +140,44 @@ async function forceSellAllCards() {
   const cardsSnap = await get(cardsRef);
   const cards = cardsSnap.val() || {};
 
-  // Loop through all users
-  for (const [uid, user] of Object.entries(users)) {
+  // Loop through every user
+  for (const [uid, userData] of Object.entries(users)) {
+    const inventory = userData.inventory || {};
     let totalRefund = 0;
-    if (!user.inventory) continue;
 
-    for (const [cardName, owned] of Object.entries(user.inventory)) {
-      const cardData = Object.values(cards).find((c) => c.name === cardName);
-      if (cardData) {
-        const refundAmount = parseInt(cardData.price) * parseInt(owned);
-        totalRefund += refundAmount;
-      }
+    // Go through each card the user owns
+    for (const [cardName, quantity] of Object.entries(inventory)) {
+      // Find the matching card in database
+      const cardEntry = Object.values(cards).find(c => c.name === cardName);
+      if (!cardEntry) continue;
+
+      const cardPrice = parseInt(cardEntry.price);
+      const ownedCount = parseInt(quantity);
+      totalRefund += cardPrice * ownedCount;
     }
 
-    // Refund points and clear inventory
-    const newBalance = (parseInt(user.points) || 0) + totalRefund;
+    // Update user's balance and clear inventory
+    const currentPoints = parseInt(userData.points || 0);
+    const newBalance = currentPoints + totalRefund;
+
     await update(ref(database, `users/${uid}`), {
       points: newBalance,
-      inventory: null,
+      inventory: {} // clear all owned cards
     });
   }
 
-  // Reset all card prices to their original value
+  // Reset every card price to its original
   for (const [id, card] of Object.entries(cards)) {
     await update(ref(database, "cards/" + id), {
       price: card.original_price,
-      lastChange: "reset",
+      lastChange: "reset"
     });
   }
 
-  console.log("✅ All cards sold, user inventories cleared, prices reset!");
-  alert("✅ Global sell completed! All users refunded and prices reset.");
+  console.log("✅ All user cards sold and prices reset!");
+  alert("✅ Global sell completed! All user cards sold and prices reset.");
 }
+
 
 // --- Countdown auto-updates ---
 setInterval(() => {
