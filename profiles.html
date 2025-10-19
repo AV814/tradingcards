@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Player Profiles | Card Trader Game</title>
+  <title>Player Profiles | Project Cards</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -12,5 +12,32 @@
   <div id="profile-list"></div>
 
   <script type="module" src="js/profiles.js"></script>
+
+  <style>
+ /* Buttons */
+    .button,
+    #logout,
+    #change-pfp {
+      background-color: #40557A;
+      color: white;
+      border: none;
+      border-radius: 2px;
+      padding: 5px 5px;
+      cursor: pointer;
+      font-size: 1em;
+      font: Courier;
+      transition: background 0.2s;
+    }
+
+    .button:hover,
+    #logout:hover,
+    #change-pfp:hover {
+      background-color: #476DC9;
+    }
+  </style>
+
+  <a href="menu.html" class="button" style="text-decoration:none">Menu</a>
+  <a href="store.html" class="button" style="text-decoration:none">Shop</a>
+  <a href="dashboard.html" class="button" style="text-decoration:none">Dashboard</a>
 </body>
 </html>
