@@ -6,7 +6,8 @@ const userInfo = document.getElementById("user-info");
 const cardContainer = document.getElementById("card-container");
 
 let currentUser = null;
-let currentPoints = 0; // ✅ Keep local copy to update display faster
+let currentPoints = 0;
+let currentUserCards = {}; // 🆕 track owned cards
 
 // Track login state
 onAuthStateChanged(auth, async (user) => {
@@ -15,6 +16,7 @@ onAuthStateChanged(auth, async (user) => {
     const userSnap = await get(ref(database, "users/" + user.uid));
     const userData = userSnap.val();
     currentPoints = userData.points;
+    currentUserCards = userData.cards || {}; // 🆕 store owned cards
     userInfo.textContent = `$${userData.points}`;
     loadStore(user.uid);
   } else {
@@ -23,12 +25,17 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ✅ Load and display all cards
-function loadStore(uid) {
+async function loadStore(uid) {
   const cardsRef = ref(database, "cards");
 
-  onValue(cardsRef, (snapshot) => {
+  onValue(cardsRef, async (snapshot) => {
     const cards = snapshot.val();
     cardContainer.innerHTML = "";
+
+    // 🔄 Refresh user data to show up-to-date owned counts
+    const userSnap = await get(ref(database, "users/" + uid));
+    const userData = userSnap.val();
+    currentUserCards = userData.cards || {};
 
     for (const [id, data] of Object.entries(cards)) {
       const div = document.createElement("div");
@@ -48,6 +55,9 @@ function loadStore(uid) {
           ? "down"
           : "";
 
+      // 🆕 show how many the user owns
+      const ownedCount = currentUserCards[id] || 0;
+
       div.innerHTML = `
         <h3>${data.name}</h3>
         <img src="${data.image}" alt="${data.name}" class="card-image" />
@@ -55,6 +65,7 @@ function loadStore(uid) {
           Price: ${data.price} pts ${indicator}
         </p>
         <p>Stock: ${data.stock}</p>
+        <p>You own: <strong>${ownedCount}</strong></p>
         <button class="buy-btn" data-id="${id}">Buy</button>
         <button class="sell-btn" data-id="${id}">Sell</button>
       `;
@@ -105,8 +116,8 @@ async function buyCard(uid, cardId) {
   await update(userRef, { points: newPoints, cards: userCards });
   await update(cardRef, { stock: newStock });
 
-  // ✅ Instantly update displayed points
   updatePointsDisplay(newPoints);
+  loadStore(uid); // 🆕 refresh display
 }
 
 // ✅ Sell card
@@ -134,6 +145,6 @@ async function sellCard(uid, cardId) {
   await update(userRef, { points: newPoints, cards: userCards });
   await update(cardRef, { stock: newStock });
 
-  // ✅ Instantly update displayed points
   updatePointsDisplay(newPoints);
+  loadStore(uid); // 🆕 refresh display
 }
