@@ -1,7 +1,7 @@
 body {
   font-family: Courier;
   text-align: center;
-  background: #373740;
+  background: #1C1C2B;
   color: white;
 }
 
@@ -18,7 +18,7 @@ h1 {
 }
 
 .login-box, .signup-box {
-  background: #2E0C0C;
+  background: #4E546B;
   padding: 20px;
   border-radius: 10px;
   width: 300px;
@@ -55,7 +55,7 @@ ul {
 }
 
 li {
-  background: #373740;
+  background: #1C1C2B;
   margin: 8px auto;
   padding: 10px;
   width: 250px;
