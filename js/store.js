@@ -75,7 +75,7 @@ function loadStore(uid) {
 // ✅ Update user points in UI
 function updatePointsDisplay(points) {
   currentPoints = points;
-  userInfo.textContent = `${currentUser.username || "User"} — Points: ${points}`;
+  userInfo.textContent = `$${points}`;
 }
 
 // ✅ Buy card
