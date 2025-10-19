@@ -14,7 +14,8 @@ onValue(usersRef, (snapshot) => {
   const userArray = Object.entries(users).map(([uid, data]) => ({
     uid,
     name: data.username || "Unknown Player",
-    points: data.points || 0
+    points: data.points || 0,
+    pfp: data.profilePicture || "images/default-pfp.png"
   }));
 
   // Sort alphabetically by name
@@ -23,12 +24,14 @@ onValue(usersRef, (snapshot) => {
   profileList.innerHTML = userArray
     .map(
       (u) => `
-      <div class="profile-card">
-        <h3>${u.name}</h3>
-        <p>${u.points} pts</p>
-        <a href="profile.html?id=${u.uid}">View Collection →</a>
-      </div>
-    `
+        <div class="profile-card">
+          <img src="${u.pfp}" alt="${u.name}'s picture" class="profile-pic-square">
+          <div class="profile-info">
+            <a href="profile.html?id=${u.uid}" class="profile-name">${u.name}</a>
+            <p class="profile-points">${u.points} pts</p>
+          </div>
+        </div>
+      `
     )
     .join("");
 });
