@@ -81,7 +81,7 @@ function loadUserCards(userCards) {
   });
 }
 
-// ✅ Profile picture upload
+// Profile picture upload
 changePfpBtn.addEventListener("click", () => {
   uploadPfpInput.click();
 });
@@ -102,7 +102,7 @@ uploadPfpInput.addEventListener("change", async (e) => {
     });
 
     profilePic.src = downloadURL;
-    alert("✅ Profile picture updated!");
+    alert("Profile picture updated!");
   } catch (err) {
     console.error("Error uploading profile picture:", err);
     alert("Failed to upload profile picture. Please try again.");
