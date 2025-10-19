@@ -9,5 +9,6 @@ REPLACE NEEDED AND PUT THIS IN "VALUE":
   "original_price": 30,
   "stock": 50,
   "image": "images/barrel.png",
-  "lastChange": "up"
+  "lastChange": "up",
+  "tier": "1"
 }
