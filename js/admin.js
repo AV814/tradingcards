@@ -89,6 +89,8 @@ function getNewPrice(currentPrice, originalPrice, tier) {
 async function updatePrices() {
   const snapshot = await get(cardsRef);
   const cards = snapshot.val();
+  const usersSnap = await get(usersRef);
+  const users = usersSnap.val() || {};
   const txSnapshot = await get(ref(database, "transactions"));
   const transactions = txSnapshot.val() || {};
 
@@ -98,24 +100,43 @@ async function updatePrices() {
     const tier = card.tier || 1;
     let newPrice = getNewPrice(currentPrice, originalPrice, tier);
 
-    // Demand adjustments
+    // --- Demand based on recent transactions ---
     const cardTransactions = Object.values(transactions).filter(
       (tx) => tx.card === card.name
     );
     const buys = cardTransactions.filter((t) => t.action === "buy").length;
     const sells = cardTransactions.filter((t) => t.action === "sell").length;
 
-    if (buys > sells) {
-      newPrice += Math.round(originalPrice * 0.05);
-    } else if (sells > buys) {
-      newPrice -= Math.round(originalPrice * 0.05);
+    let demandAdjustment = 0;
+
+    if (buys > sells) demandAdjustment += 0.05 * originalPrice;
+    else if (sells > buys) demandAdjustment -= 0.05 * originalPrice;
+
+    // --- Stock pressure: the fewer cards left, the more likely price goes up ---
+    const stockRatio = card.stock / card.original_stock; // 0 = sold out, 1 = full
+    demandAdjustment += originalPrice * (1 - stockRatio) * 0.1; // up to +10% if almost sold out
+
+    // --- Ownership check: if one user has >50% of original stock, pressure to go down ---
+    let maxOwnershipRatio = 0;
+    for (const userData of Object.values(users)) {
+      const userQty = (userData.cards && userData.cards[card.name]) || 0;
+      const ratio = userQty / card.original_stock;
+      if (ratio > maxOwnershipRatio) maxOwnershipRatio = ratio;
     }
 
-    // Clamp again
+    if (maxOwnershipRatio > 0.5 || card.stock === 0) {
+      demandAdjustment -= originalPrice * 0.15; // up to -15%
+    }
+
+    // Apply demand adjustment
+    newPrice = Math.round(newPrice + demandAdjustment);
+
+    // Clamp final price
     const minPrice = Math.max(Math.floor(originalPrice * 0.4), 1);
     const maxPrice = Math.ceil(originalPrice * 2.5);
     newPrice = Math.max(minPrice, Math.min(maxPrice, newPrice));
 
+    // Update Firebase
     await update(ref(database, "cards/" + id), {
       price: String(newPrice),
       lastChange:
@@ -126,9 +147,10 @@ async function updatePrices() {
   // Clear transactions
   await remove(ref(database, "transactions"));
 
-  console.log("✅ Prices updated and demand applied!");
+  console.log("✅ Prices updated with demand & stock pressure!");
   countdown = intervalSeconds;
 }
+
 
 // --- Force Sell + Reset Market ---
 async function forceSellAndReset() {
