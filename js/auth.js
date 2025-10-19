@@ -32,7 +32,7 @@ if (signupForm) {
 
       await set(userRef, {
         username: username,
-        points: 1000,
+        points: 500,
         cards: {}
       });
 
