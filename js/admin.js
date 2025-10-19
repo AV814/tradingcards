@@ -69,7 +69,7 @@ function getTierVolatility(tier) {
     case 5:
       return 0.50; // ±50%
     default:
-      return 0.10; // fallback
+      return 0.10;
   }
 }
 
@@ -130,45 +130,27 @@ async function updatePrices() {
   countdown = intervalSeconds;
 }
 
-import { database } from "./firebase.js";
-import {
-  ref,
-  onValue,
-  update,
-  get,
-  remove,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
-const cardList = document.getElementById("card-list");
-const countdownEl = document.getElementById("countdown");
-const forceBtn = document.getElementById("force-update");
-const sellAllBtn = document.getElementById("sell-all"); // <-- make sure your HTML has this button
-
-let intervalSeconds = 100;
-let countdown = intervalSeconds;
-
-// (existing onValue/cards display/updatePrices functions remain the same)
-
-
-// 🟢 FORCE SELL + RESET FUNCTION
+// --- Force Sell + Reset Market ---
 async function forceSellAndReset() {
   const cardsSnap = await get(ref(database, "cards"));
   const usersSnap = await get(ref(database, "users"));
 
-  if (!cardsSnap.exists() || !usersSnap.exists()) return;
+  if (!cardsSnap.exists() || !usersSnap.exists()) {
+    alert("Missing cards or users data!");
+    return;
+  }
 
   const cards = cardsSnap.val();
   const users = usersSnap.val();
 
-  // Clone cards so we can track updated stock
   const updatedCards = { ...cards };
   const userUpdates = {};
 
+  // For each user, sell all owned cards
   for (const [userId, userData] of Object.entries(users)) {
     let userPoints = userData.points || 0;
     const ownedCards = userData.cards || {};
 
-    // Sell each owned card
     for (const [cardName, quantity] of Object.entries(ownedCards)) {
       const card = cards[cardName];
       if (!card) continue;
@@ -176,42 +158,38 @@ async function forceSellAndReset() {
       const cardPrice = parseInt(card.price);
       const amount = parseInt(quantity);
 
-      // Add value to user points
+      // Add value to user’s points
       userPoints += cardPrice * amount;
 
-      // Return stock
+      // Return stock to card
       updatedCards[cardName].stock =
         parseInt(updatedCards[cardName].stock) + amount;
     }
 
-    // Clear user’s cards and update points
+    // Update user
     userUpdates[userId] = {
       ...userData,
       points: userPoints,
-      cards: {}, // sold everything
+      cards: {}, // clear ownership
     };
   }
 
-  // Reset cards to original prices and stock
+  // Reset all cards to original values
   for (const [cardName, cardData] of Object.entries(updatedCards)) {
     updatedCards[cardName].price = parseInt(cardData.original_price);
     updatedCards[cardName].stock = parseInt(cardData.original_stock);
     updatedCards[cardName].lastChange = "reset";
   }
 
-  // Batch updates
+  // Apply updates in one batch
   await update(ref(database), {
     cards: updatedCards,
     users: userUpdates,
   });
 
-  console.log("✅ All cards sold, user points updated, and market reset!");
-  alert("All players' cards sold and market reset!");
+  console.log("✅ All players' cards sold, points updated, and market reset!");
+  alert("✅ All players' cards sold and market reset!");
 }
-
-// 🔘 Hook up the button
-sellAllBtn.addEventListener("click", forceSellAndReset);
-
 
 // --- Countdown auto-updates ---
 setInterval(() => {
@@ -222,4 +200,4 @@ setInterval(() => {
 
 // --- Manual buttons ---
 forceBtn.addEventListener("click", updatePrices);
-resetBtn.addEventListener("click", forceSellAllCards);
+resetBtn.addEventListener("click", forceSellAndReset);
