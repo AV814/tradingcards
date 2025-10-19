@@ -15,7 +15,7 @@ onAuthStateChanged(auth, async (user) => {
     const userSnap = await get(ref(database, "users/" + user.uid));
     const userData = userSnap.val();
     currentPoints = userData.points;
-    userInfo.textContent = `${userData.username} — Points: ${userData.points}`;
+    userInfo.textContent = `$${userData.points}`;
     loadStore(user.uid);
   } else {
     window.location.href = "index.html";
