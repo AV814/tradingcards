@@ -10,7 +10,7 @@ const firebaseConfig = {
   authDomain: "projectcards-b6b53.firebaseapp.com",
   databaseURL: "https://projectcards-b6b53-default-rtdb.firebaseio.com",
   projectId: "projectcards-b6b53",
-  storageBucket: "projectcards-b6b53.appspot.com",
+  storageBucket: "projectcards-b6b53.firebasestorage.app",
   messagingSenderId: "625461773361",
   appId: "1:625461773361:web:b47ae17ec449966a418110",
   measurementId: "G-FV690XG2R7"
