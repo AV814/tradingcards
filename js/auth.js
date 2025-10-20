@@ -45,7 +45,9 @@ if (signupForm) {
       }
 
       alert("✅ Account created successfully! Redirecting to dashboard...");
-      window.location.href = "dashboard.html";
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 1000); // give Firebase 1s to complete database writes
     } catch (error) {
       console.error("Signup error:", error);
       if (error.code === "auth/email-already-in-use") {
