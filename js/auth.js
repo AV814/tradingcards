@@ -1,10 +1,14 @@
 import { auth, database } from "./firebase.js";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { ref, set, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import {
+  ref,
+  set,
+  get
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 // === SIGN UP ===
 const signupForm = document.getElementById("signup-form");
@@ -22,23 +26,33 @@ if (signupForm) {
     }
 
     try {
-      // Create Firebase Auth user
+      // Create the auth user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Create a matching user record in Realtime Database
-      await set(ref(database, "users/" + user.uid), {
-        username: username,
-        points: 500,
-        cards: {},
-        profilePicture: "images/default-pfp.png"
-      });
+      // Double-check that this user does not already exist in DB
+      const userRef = ref(database, "users/" + user.uid);
+      const existing = await get(userRef);
 
-      alert("Account created successfully! Redirecting to your dashboard...");
+      if (!existing.exists()) {
+        await set(userRef, {
+          username: username,
+          email: email,
+          points: 500,
+          cards: {},
+          profilePicture: "images/default-pfp.png"
+        });
+      }
+
+      alert("✅ Account created successfully! Redirecting to dashboard...");
       window.location.href = "dashboard.html";
     } catch (error) {
       console.error("Signup error:", error);
-      alert(`❌ Error creating account: ${error.message}`);
+      if (error.code === "auth/email-already-in-use") {
+        alert("That email is already registered. Please log in instead.");
+      } else {
+        alert(`❌ Error creating account: ${error.message}`);
+      }
     }
   });
 }
@@ -62,22 +76,21 @@ if (loginForm) {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Verify user exists in DB
+      // Check that a user record actually exists in the database
       const userRef = ref(database, "users/" + user.uid);
       const userSnap = await get(userRef);
 
       if (!userSnap.exists()) {
-        // DB record missing — prevent auto-creation on dashboard
-        alert("⚠️ Account data missing. Please sign up first.");
+        alert("⚠️ No database record found for this account. Please sign up again.");
         await signOut(auth);
         return;
       }
 
-      console.log("Login successful for:", email);
+      console.log("✅ Login successful for:", email);
       window.location.href = "dashboard.html";
-    } catch (loginError) {
-      console.error("Login error:", loginError);
-      alert(`❌ Login error: ${loginError.message}`);
+    } catch (error) {
+      console.error("Login error:", error);
+      alert(`❌ Login error: ${error.message}`);
     }
   });
 }
