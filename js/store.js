@@ -1,7 +1,6 @@
 import { auth, database } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { ref, update, get, onValue, off } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-import { runTransaction } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { ref, update, get, onValue, off, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
 const userInfo = document.getElementById("user-info");
 const cardContainer = document.getElementById("card-container");
@@ -11,12 +10,14 @@ let currentPoints = 0;
 let currentUserCards = {};
 let cardsListener = null;
 
-//Track login state
+// Track login state
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
     const userSnap = await get(ref(database, "users/" + user.uid));
     const userData = userSnap.val();
+    if (!userData) return;
+
     currentPoints = userData.points;
     currentUserCards = userData.cards || {};
     userInfo.textContent = `$${userData.points}`;
@@ -26,18 +27,17 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-//Load store once with a listener
+// Load store once with listener
 function loadStore(uid) {
   const cardsRef = ref(database, "cards");
 
-  // Remove any previous listener
   if (cardsListener) off(cardsRef, "value", cardsListener);
 
   cardsListener = onValue(cardsRef, async (snapshot) => {
     const cards = snapshot.val();
     if (!cards) return;
 
-    // Refresh user cards once each update
+    // Refresh user data each update
     const userSnap = await get(ref(database, "users/" + uid));
     const userData = userSnap.val();
     currentUserCards = userData.cards || {};
@@ -48,7 +48,7 @@ function loadStore(uid) {
   });
 }
 
-//Render store UI
+// Render store
 function renderStore(cards, uid) {
   cardContainer.innerHTML = "";
 
@@ -57,18 +57,12 @@ function renderStore(cards, uid) {
     div.classList.add("card-item");
 
     const indicator =
-      data.lastChange === "up"
-        ? "🔺"
-        : data.lastChange === "down"
-        ? "🔻"
-        : "";
+      data.lastChange === "up" ? "🔺" :
+      data.lastChange === "down" ? "🔻" : "";
 
     const indicatorClass =
-      data.lastChange === "up"
-        ? "up"
-        : data.lastChange === "down"
-        ? "down"
-        : "";
+      data.lastChange === "up" ? "up" :
+      data.lastChange === "down" ? "down" : "";
 
     const ownedCount = currentUserCards[id] || 0;
 
@@ -87,45 +81,40 @@ function renderStore(cards, uid) {
     cardContainer.appendChild(div);
   }
 
-  // Attach listeners
+  // Attach listeners once per render
   document.querySelectorAll(".buy-btn").forEach((btn) => {
-    btn.addEventListener("click", () => buyCard(uid, btn.dataset.id));
+    btn.onclick = () => buyCard(uid, btn.dataset.id);
   });
   document.querySelectorAll(".sell-btn").forEach((btn) => {
-    btn.addEventListener("click", () => sellCard(uid, btn.dataset.id));
+    btn.onclick = () => sellCard(uid, btn.dataset.id);
   });
 }
 
-//Update points in UI
-function updatePointsDisplay(points) {
-  currentPoints = points;
-  userInfo.textContent = `$${points}`;
-}
-
-//--- BUY CARD
+// --- BUY CARD ---
 async function buyCard(uid, cardId) {
   const userRef = ref(database, "users/" + uid);
   const cardRef = ref(database, "cards/" + cardId);
 
   try {
-    await runTransaction(cardRef, (cardData) => {
-      if (!cardData) return; // card doesn't exist
-      if (cardData.stock <= 0) return; // out of stock
-
-      // Decrease stock
-      cardData.stock -= 1;
-      return cardData;
-    }, { applyLocally: false });
+    const cardSnap = await get(cardRef);
+    const cardData = cardSnap.val();
+    if (!cardData) return alert("Card not found.");
+    if (cardData.stock <= 0) return alert("Out of stock!");
 
     await runTransaction(userRef, (userData) => {
       if (!userData) return;
       if (userData.points < cardData.price) return; // not enough points
 
-      // Deduct points and give card
       userData.points -= cardData.price;
       if (!userData.cards) userData.cards = {};
       userData.cards[cardId] = (userData.cards[cardId] || 0) + 1;
       return userData;
+    });
+
+    await runTransaction(cardRef, (cardData) => {
+      if (!cardData) return;
+      if (cardData.stock > 0) cardData.stock -= 1;
+      return cardData;
     });
 
   } catch (err) {
@@ -133,20 +122,21 @@ async function buyCard(uid, cardId) {
   }
 }
 
-//--- SELL CARD
+// --- SELL CARD ---
 async function sellCard(uid, cardId) {
   const userRef = ref(database, "users/" + uid);
   const cardRef = ref(database, "cards/" + cardId);
 
   try {
+    const cardSnap = await get(cardRef);
+    const cardData = cardSnap.val();
+    if (!cardData) return alert("Card not found.");
+
     await runTransaction(userRef, (userData) => {
       if (!userData || !userData.cards || !userData.cards[cardId]) return;
-      
-      const cardCount = userData.cards[cardId];
-      if (cardCount <= 0) return;
+      const sellPrice = Math.floor(cardData.price * 0.5);
 
-      // Update user’s cards and points
-      userData.points += userData.cards[cardId] * 0; // temporary placeholder
+      userData.points += sellPrice;
       userData.cards[cardId] -= 1;
       if (userData.cards[cardId] <= 0) delete userData.cards[cardId];
       return userData;
@@ -162,4 +152,3 @@ async function sellCard(uid, cardId) {
     console.error("Sell transaction failed:", err);
   }
 }
-
