@@ -1,6 +1,6 @@
 import { auth, database, storage } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { ref as dbRef, onValue, get, set, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { ref as dbRef, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 const userInfo = document.getElementById("user-info");
@@ -23,36 +23,35 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     const userSnap = await get(userRef);
-    let userData = userSnap.val();
 
-    // If user node doesn't exist yet
-    if (!userData) {
-      const defaultUserData = {
-        username: user.email.split("@")[0],
-        points: 1000,
-        cards: {},
-        profilePicture: "images/default-pfp.png",
-      };
-      await set(userRef, defaultUserData);
-      userData = defaultUserData;
+    if (!userSnap.exists()) {
+      // ❌ Do NOT auto-create user data here
+      alert("⚠️ Your account data could not be found. Please sign up again.");
+      await signOut(auth);
+      window.location.href = "index.html";
+      return;
     }
 
-    // Display user info & profile picture
-    userInfo.innerHTML = `${userData.username}<br><span class="points">$${userData.points}</span>`;
-    if (userData.profilePicture) {
-      profilePic.src = userData.profilePicture;
-    }
+    const userData = userSnap.val();
+
+    // ✅ Display user info & profile picture
+    userInfo.innerHTML = `
+      ${userData.username}<br>
+      <span class="points">$${userData.points}</span>
+    `;
+
+    profilePic.src = userData.profilePicture || "images/default-pfp.png";
 
     // Load user cards
     loadUserCards(userData.cards || {});
   } catch (err) {
-    console.error("Error fetching or creating user data:", err);
+    console.error("Error fetching user data:", err);
     alert("Failed to load your data. Please try again.");
   }
 });
 
 // ✅ Load user's owned cards
-function loadUserCards(userCards) {
+async function loadUserCards(userCards) {
   cardContainer.innerHTML = "";
 
   if (!userCards || Object.keys(userCards).length === 0) {
@@ -60,31 +59,27 @@ function loadUserCards(userCards) {
     return;
   }
 
-  // Load all cards from DB once
-  get(dbRef(database, "cards")).then((snapshot) => {
-    const allCards = snapshot.val();
-    if (!allCards) return;
+  const snapshot = await get(dbRef(database, "cards"));
+  const allCards = snapshot.val();
+  if (!allCards) return;
 
-    for (const [id, quantity] of Object.entries(userCards)) {
-      const cardData = allCards[id];
-      if (!cardData) continue;
+  for (const [id, quantity] of Object.entries(userCards)) {
+    const cardData = allCards[id];
+    if (!cardData) continue;
 
-      const div = document.createElement("div");
-      div.classList.add("card-item");
-      div.innerHTML = `
-        <h3>${cardData.name}</h3>
-        <img src="${cardData.image}" alt="${cardData.name}" class="card-image" />
-        <p>Quantity: ${quantity}</p>
-      `;
-      cardContainer.appendChild(div);
-    }
-  });
+    const div = document.createElement("div");
+    div.classList.add("card-item");
+    div.innerHTML = `
+      <h3>${cardData.name}</h3>
+      <img src="${cardData.image}" alt="${cardData.name}" class="card-image" />
+      <p>Quantity: ${quantity}</p>
+    `;
+    cardContainer.appendChild(div);
+  }
 }
 
-// Profile picture upload
-changePfpBtn.addEventListener("click", () => {
-  uploadPfpInput.click();
-});
+// ✅ Profile picture upload
+changePfpBtn.addEventListener("click", () => uploadPfpInput.click());
 
 uploadPfpInput.addEventListener("change", async (e) => {
   const file = e.target.files[0];
@@ -102,7 +97,7 @@ uploadPfpInput.addEventListener("change", async (e) => {
     });
 
     profilePic.src = downloadURL;
-    alert("Profile picture updated!");
+    alert("✅ Profile picture updated!");
   } catch (err) {
     console.error("Error uploading profile picture:", err);
     alert("Failed to upload profile picture. Please try again.");
